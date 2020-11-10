@@ -5,7 +5,9 @@
  */
 export function createGetter(path) {
   return (obj) => {
-    return path.split('.').reduce((object, key) => {
+    const arPath = path.split('.');
+
+    return arPath.reduce((object, key) => {
       return (object === undefined) ? object : object[key];
     }, obj);
   }

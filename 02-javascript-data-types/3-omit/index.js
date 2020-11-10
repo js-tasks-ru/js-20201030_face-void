@@ -7,11 +7,10 @@
 export const omit = (obj, ...fields) => {
   const newObj = {};
 
-  fields.forEach((key => {
-    if (key in obj) {
-      delete obj[key];
-    }
-  }));
+  for (const [k, v] of Object.entries(obj)) {
+    if (!fields.includes(k))
+      newObj[k] = v;
+  }
 
-  return Object.fromEntries(Object.entries(obj));
+  return newObj;
 };

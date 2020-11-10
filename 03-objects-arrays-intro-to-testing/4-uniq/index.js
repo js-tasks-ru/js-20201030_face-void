@@ -4,14 +4,7 @@
  * @returns {*[]} - the new array with uniq values
  */
 export function uniq(arr) {
-  let arReturn = [];
+  const set = new Set(arr);
 
-  if (arr !== undefined) {
-    arr.map(e => {
-      if (!arReturn.includes(e))
-        arReturn.push(e);
-    });
-  }
-
-  return arReturn;
+  return Array.from(set);
 }
