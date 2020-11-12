@@ -1,7 +1,7 @@
 export default class ColumnChart {
   constructor(data) {
     this.chartHeight = 50;
-    
+
     if (data) {
       // Заголовок чарта
       this.label = (data.label && typeof data.label == 'string') ?
@@ -43,12 +43,15 @@ export default class ColumnChart {
 
     if (values) {
       const columnsData = this.getColumnProps(values);
-      this.element.querySelector('.column-chart__chart').innerHTML = columnsData.reduce((accum, obj) => {
+      const chartsColumns = columnsData.reduce((accum, obj) => {
         accum += `<div style="--value: ${obj.value}" data-tooltip="${obj.percent}%"></div>`;
         return accum;
       }, '');
 
-      this.loaded();
+      this.element.querySelector('.column-chart__chart').innerHTML = chartsColumns;
+
+      if (chartsColumns)
+        this.loaded();
     }
   }
 
