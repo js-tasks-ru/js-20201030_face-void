@@ -1,6 +1,32 @@
 class Tooltip {
   static instance = null;
 
+  addTooltipBehavior = e => {
+    const target = e.target;
+
+    // Работает только на элементах с data-tooltip
+    if (!target.dataset.tooltip)
+      return;
+
+    // Добавляем элемент
+    this.render(target.dataset.tooltip);
+
+    // Размещаем элемент
+    this.moveAt(e.pageX, e.pageY);
+
+    // Перемещаем элемент за курсором
+    document.addEventListener('pointermove', this.moveTooltip);
+  }
+
+  moveTooltip = e => {
+    this.moveAt(e.pageX, e.pageY);
+  }
+
+  destroy = () => {
+    this.element.remove();
+    document.removeEventListener('pointermove', this.moveTooltip);
+  }
+
   constructor() {
     if (Tooltip.instance)
       return Tooltip.instance;
@@ -31,43 +57,11 @@ class Tooltip {
     document.addEventListener('pointerout', this.destroy);
   }
 
-  addTooltipBehavior(e) {
-    const target = e.target;
-
-    // Работает только на элементах с data-tooltip
-    if (!target.dataset.tooltip)
-      return;
-
-    const tooltip = new Tooltip();
-
-    // Добавляем элемент
-    tooltip.render(target.dataset.tooltip);
-
-    // Размещаем элемент
-    tooltip.moveAt(e.pageX, e.pageY);
-
-    // Перемещаем элемент за курсором
-    document.addEventListener('pointermove', tooltip.moveTooltip);
-  }
-
   moveAt(pageX, pageY) {
     const tooltip = this.element;
 
-    tooltip.style.left = pageX + 2 + 'px';
-    tooltip.style.top = pageY + 2 + 'px';
-  }
-
-  moveTooltip(e) {
-    const tooltip = new Tooltip();
-
-    tooltip.moveAt(e.pageX, e.pageY);
-  }
-
-  destroy() {
-    const tooltip = new Tooltip();
-
-    tooltip.element.remove();
-    document.removeEventListener('pointermove', tooltip.moveTooltip);
+    tooltip.style.left = pageX + 10 + 'px';
+    tooltip.style.top = pageY + 10 + 'px';
   }
 }
 
