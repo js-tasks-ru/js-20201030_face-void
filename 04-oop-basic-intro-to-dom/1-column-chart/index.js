@@ -1,58 +1,80 @@
 export default class ColumnChart {
-  constructor(data) {
-    this.chartHeight = 50;
+  chartHeight = 50;
 
-    if (data) {
-      // Заголовок чарта
-      this.label = (data.label && typeof data.label == 'string') ?
-        data.label[0].toUpperCase() + data.label.substr(1) : '';
-      // Ссылка чарта
-      this.link = (data.link) ? `<a href="/${data.link}" class="column-chart__link">View all</a>` : '';
-      // Значение на чарте
-      this.value = (data.value) ? data.value : '';
-      // Значения для
-      this.data = (data.data) ? data.data : [];
-    }
+  constructor({
+                label = '',
+                link = '',
+                value = '',
+                data = [],
+              } = {}) {
+
+    this.label = label;
+    this.link = link;
+    this.value = value;
+    this.data = data;
 
     this.render();
-    this.update(this.data);
   }
 
   render() {
     const element = document.createElement('div');
-    element.className = 'column-chart';
-    element.style.cssText = `--chart-height: ${this.chartHeight}`;
 
-    element.innerHTML = `
-      <div class="column-chart__title">
-        ${this.label}
-        ${this.link}
-      </div>
-      <div class="column-chart__container">
-        <div data-element="header" class="column-chart__header">${this.value}</div>
-        <div data-element="body" class="column-chart__chart">
+    element.innerHTML = this.template;
+
+    this.element = element.firstElementChild;
+    this.subElements = this.getSubElements();
+
+    if (this.data.length > 0) {
+      this.loaded();
+    }
+  }
+
+  get template() {
+    return `
+      <div class="column-chart column-chart_loading" --chart-height="${this.chartHeight}">
+        <div class="column-chart__title">
+          Total ${this.label}
+          ${this.getLink()}
+        </div>
+        <div class="column-chart__container">
+          <div data-element="header" class="column-chart__header">${this.value}</div>
+          <div data-element="body" class="column-chart__chart">
+            ${this.getBody(this.data)}
+          </div>
         </div>
       </div>
     `;
-
-    this.element = element;
   }
 
-  update(values) {
+  getLink() {
+    return (this.link !== '') ? `<a href="${this.link}" class="column-chart__link">View all</a>` : '';
+  }
+
+  getBody(data) {
+    const columnProps = this.getColumnProps(data);
+
+    return columnProps.map(obj => {
+      return `<div style="--value: ${obj.value}" data-tooltip="${obj.percent}%"></div>`
+    }).join('');
+  }
+
+  getSubElements() {
+    const elements = this.element.querySelectorAll('[data-element]');
+
+    return [...elements].reduce((accum, subElement) => {
+      accum[subElement.dataset.element] = subElement;
+
+      return accum;
+    }, {});
+  }
+
+  update(values = []) {
     this.loading();
 
-    if (values) {
-      const columnsData = this.getColumnProps(values);
-      const chartsColumns = columnsData.reduce((accum, obj) => {
-        accum += `<div style="--value: ${obj.value}" data-tooltip="${obj.percent}%"></div>`;
-        return accum;
-      }, '');
+    this.subElements.body.innerHTML = this.getBody(values);
 
-      this.element.querySelector('.column-chart__chart').innerHTML = chartsColumns;
-
-      if (chartsColumns)
-        this.loaded();
-    }
+    if (values.length > 0)
+      this.loaded();
   }
 
   getColumnProps(data) {

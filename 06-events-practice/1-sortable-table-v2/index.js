@@ -130,8 +130,6 @@ export default class SortableTable {
   sort(value, order = 'asc') {
     // Перемещаем стрелку в сортируемую колонку
     if (value !== this.sortValue) {
-      this.subElements.arrow.remove();
-
       this.sortingElements[ value ].append(this.subElements.arrow);
     }
 
