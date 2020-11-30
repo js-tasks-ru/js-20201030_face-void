@@ -1,7 +1,5 @@
 import escapeHtml from './utils/escape-html.js';
 import fetchJson from './utils/fetch-json.js';
-import productData from "./__mocks__/product-data";
-import categoriesData from "./__mocks__/categories-data";
 
 const IMGUR_API_URL = 'https://api.imgur.com/3/image';
 const IMGUR_CLIENT_ID = '28aaa2e823b03b1';
@@ -93,19 +91,16 @@ export default class ProductForm {
     // редактирование
     if (this.productId)
     {
-      const [formData, categories] = await Promise.all([this.loadData(this.productId), this.loadCategories()]);
-      this.productData = (formData.length > 0) ? formData[0] : this.defaultFormData;
+      const [categories, formData] = await Promise.all([this.loadCategories(), this.loadData(this.productId)]);
       this.categoriesData = categories;
+      this.productData = (formData.length > 0) ? formData[0] : this.defaultFormData;
     }
     // создание
     else
     {
-      this.productData = this.defaultFormData;
       this.categoriesData = await this.loadCategories();
+      this.productData = this.defaultFormData;
     }
-
-    // console.log(this.productData);
-    // console.log(this.categoriesData);
 
     element.innerHTML = this.template;
 
@@ -142,13 +137,13 @@ export default class ProductForm {
     const url = new URL('/api/rest/products', BACKEND_URL);
     const form = this.subElements.productForm;
     const sendData = {
-      title: escapeHtml(form.title.value),
-      description: escapeHtml(form.description.value),
-      discount: Number(form.discount.value),
-      price: Number(form.price.value),
-      quantity: Number(form.quantity.value),
-      status: Number(form.status.value),
-      subcategory: form.subcategory.value,
+      title: (form.title) ? this.getSafeString(form.title.value) : '',
+      description: (form.description) ? this.getSafeString(form.description.value) : '',
+      discount: (form.discount) ? Number(form.discount.value) : 0,
+      price: (form.price) ? Number(form.price.value) : 0,
+      quantity: (form.quantity) ? Number(form.quantity.value) : 0,
+      status: (form.status) ? Number(form.status.value) : 0,
+      subcategory: (form.subcategory) ? form.subcategory.value : '',
       images: [],
     }
 
@@ -157,6 +152,8 @@ export default class ProductForm {
 
     const images = this.subElements.imageListContainer.querySelectorAll('li');
     if (images.length > 0) {
+      sendData.images = [];
+
       for (const image of images) {
         sendData.images.push({
           url: image.querySelector('[name=url]').value,
@@ -173,10 +170,8 @@ export default class ProductForm {
       }
     });
 
-    if (response.ok) {
-      const eventName = (this.productId) ? 'product-updated' : 'product-saved';
-      this.element.dispatchEvent(new Event(eventName));
-    }
+    const eventName = (this.productId) ? 'product-updated' : 'product-saved';
+    this.element.dispatchEvent(new Event(eventName));
   }
 
   get template() {
@@ -189,6 +184,7 @@ export default class ProductForm {
                     <label class="form-label">Название товара</label>
                     <input required=""
                            type="text"
+                           id="title"
                            name="title"
                            class="form-control"
                            placeholder="Название товара"
@@ -199,6 +195,7 @@ export default class ProductForm {
                   <label class="form-label">Описание</label>
                   <textarea required=""
                             class="form-control"
+                            id="description"
                             name="description"
                             data-element="productDescription"
                             placeholder="Описание товара">${this.getSafeString(data.description)}</textarea>
@@ -219,6 +216,7 @@ export default class ProductForm {
                     <label class="form-label">Цена ($)</label>
                     <input required=""
                            type="number"
+                           id="price"
                            name="price"
                            class="form-control"
                            placeholder="100"
@@ -228,6 +226,7 @@ export default class ProductForm {
                     <label class="form-label">Скидка ($)</label>
                     <input required=""
                            type="number"
+                           id="discount"
                            name="discount"
                            class="form-control"
                            placeholder="0"
@@ -239,13 +238,14 @@ export default class ProductForm {
                   <input required=""
                          type="number"
                          class="form-control"
+                         id="quantity"
                          name="quantity"
                          placeholder="1"
                          value="${data.quantity}">
                 </div>
                 <div class="form-group form-group__part-half">
                   <label class="form-label">Статус</label>
-                  <select class="form-control" name="status">
+                  <select class="form-control" id="status" name="status">
                     <option value="1">Активен</option>
                     <option value="0">Неактивен</option>
                   </select>
@@ -271,8 +271,8 @@ export default class ProductForm {
 
   getProductSingleImage(image) {
     return `<li class="products-edit__imagelist-item sortable-list__item" style="">
-                <input type="hidden" name="url" value="${image.url}">
-                <input type="hidden" name="source" value="${image.source}">
+                <input type="hidden" id="url" name="url" value="${image.url}">
+                <input type="hidden" id="source" name="source" value="${image.source}">
                 <span>
                   <img src="icon-grab.svg" data-grab-handle="" alt="grab">
                   <img class="sortable-table__cell-img" alt="Image" src="${image.url}">

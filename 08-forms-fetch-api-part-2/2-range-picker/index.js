@@ -11,9 +11,14 @@ export default class RangePicker {
     from: true,
     to: true,
   };
+  rangepickerOpenClass = 'rangepicker_open';
+  rangepickerCellClass = {
+    from: 'rangepicker__selected-from',
+    to: 'rangepicker__selected-to',
+    between: 'rangepicker__selected-between',
+  };
   currentShownDates = {};
   timezoneOffset = (new Date()).getTimezoneOffset() * 60000;
-  daysOfWeek = ['Пн', "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
   months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
   formatInputDate = (date) => {
@@ -21,7 +26,7 @@ export default class RangePicker {
   }
 
   eventHandlerToggleRangepicker = () => {
-    this.element.classList.toggle(RANGEPICKER_OPEN_CLASS);
+    this.element.classList.toggle(this.rangepickerOpenClass);
     this.updateCalendar(this.currentShownDates.from, this.currentShownDates.to);
   }
 
@@ -43,7 +48,7 @@ export default class RangePicker {
 
       this.range.from = new Date(new Date(dateValue).getTime() + this.timezoneOffset);
       this.clearSelection();
-      target.classList.add(RANGEPICKER_CELL_FROM_CLASS);
+      target.classList.add(this.rangepickerCellClass.from);
 
       return;
     }
@@ -52,8 +57,8 @@ export default class RangePicker {
       this.selectState.to = true;
 
       this.range.to = new Date(new Date(dateValue).getTime() + this.timezoneOffset);
-      target.classList.add(RANGEPICKER_CELL_TO_CLASS);
-      this.element.classList.toggle(RANGEPICKER_OPEN_CLASS);
+      target.classList.add(this.rangepickerCellClass.to);
+      this.element.classList.toggle(this.rangepickerOpenClass);
       this.updateDateInput();
 
       this.element.dispatchEvent(new Event('date-select', {bubbles: true}));
@@ -146,7 +151,8 @@ export default class RangePicker {
   }
 
   getCalendarMonth(date) {
-    const monthName = this.months[ date.getMonth() ].toLowerCase();
+    // const monthName = this.months[ date.getMonth() ].toLowerCase();
+    const monthName = date.toLocaleDateString('ru', {month: 'long'});
 
     return `<div class="rangepicker__calendar">
               <div class="rangepicker__month-indicator">
@@ -158,7 +164,12 @@ export default class RangePicker {
   }
 
   getCalendarWeek() {
-    return this.daysOfWeek.map(item => `<div>${item}</div>`).join('');
+    const daysOfWeek = new Array(7)
+      .fill(1)
+      .map((item, index) =>
+        new Date(new Date(2020, 5, index + 1)).toLocaleString('ru', { weekday: 'short'}));
+
+    return daysOfWeek.map(item => `<div>${item[0].toUpperCase() + item.substr(1)}</div>`).join('');
   }
 
   getCalendarDays(date) {
@@ -191,13 +202,13 @@ export default class RangePicker {
     const toTimestamp = this.range.to.getTime();
 
     if (dateTimestamp === fromTimestamp)
-      return ` ${RANGEPICKER_CELL_FROM_CLASS}`;
+      return ` ${this.rangepickerCellClass.from}`;
 
     if (dateTimestamp > fromTimestamp && dateTimestamp < toTimestamp)
-      return ` ${RANGEPICKER_CELL_BETWEEN_CLASS}`;
+      return ` ${this.rangepickerCellClass.between}`;
 
     if (dateTimestamp === toTimestamp)
-      return ` ${RANGEPICKER_CELL_TO_CLASS}`;
+      return ` ${this.rangepickerCellClass.to}`;
 
     return '';
   }
@@ -224,9 +235,9 @@ export default class RangePicker {
 
   clearSelection() {
     this.subElements.selector.querySelectorAll('.rangepicker__cell').forEach(element => {
-      element.classList.remove(RANGEPICKER_CELL_FROM_CLASS);
-      element.classList.remove(RANGEPICKER_CELL_TO_CLASS);
-      element.classList.remove(RANGEPICKER_CELL_BETWEEN_CLASS);
+      element.classList.remove(this.rangepickerCellClass.from);
+      element.classList.remove(this.rangepickerCellClass.to);
+      element.classList.remove(this.rangepickerCellClass.between);
     });
   }
 
